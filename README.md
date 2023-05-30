@@ -10,3 +10,11 @@ Referente aos objetos, foram criados conforme deduzido o mínimo adequado para e
 Usado .NET 7.0 e Bootstrap mais atual para tal.
 Usada arquitetura em camadas para melhor organização do código (API, Entity, Core e Infrastructure).
 
+Desejável acrescentar:
+-Testes Unitários
+-Classes de Validação
+-Classes de Exceções
+-Disponibilidade de todas as funções da API no Front-End
+-Sistema de Login
+-Camada de Segurança (incluindo vault para parâmetros seguros)
+
