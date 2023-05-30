@@ -1,0 +1,220 @@
+﻿@model Citel_Teste_Entity.Models.Categoria
+
+@{
+    ViewBag.Title = "Categorias";
+}
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+<h2>Categorias - Informações Gerais</h2>
+
+<p>
+    <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#categoriaModal">Nova Categoria</a>
+</p>
+
+<div class="modal fade" id="categoriaModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    Inserir Nova Categoria
+                </h2>
+            </div>
+            <div class="modal-body">
+                <form id="categoriaForm">
+                    <label>Nome</label>
+                    @Html.TextBoxFor(n => n.Nome, new { @class="form-control" })
+                    <label>Descrição</label>
+                    @Html.TextBoxFor(n => n.Descricao, new { @class="form-control" })
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="modal-error" id="modal-error"></div>
+                <div class="btn-group">
+                    <a href="#" id="btnSave" class="btn btn-primary">Salvar Categoria</a>
+                    <a href="#" id="btnCancel" class="btn btn-danger">Cancelar Ação</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    Remover Categoria
+                </h2>
+            </div>
+            <div class="modal-body">
+                <h3>Você confirma remover esta categoria?</h3>
+            </div>
+            <div class="modal-footer">
+                <div class="modal-error" id="modal-error"></div>
+                <div class="btn-group">
+                    <a href="#" id="btnDelete" class="btn btn-danger">Remover Categoria</a>
+                    <a href="#" id="btnCancelDeleteConfirm" class="btn btn-primary">Cancelar Ação</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="updateModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    Editar Categoria
+                </h2>
+            </div>
+            <div class="modal-body">
+                <form id="categoriaUpdateForm">
+                    <label>Nome</label>
+                    @Html.TextBoxFor(n => n.Nome, new { @class="form-control" })
+                    <label>Descrição</label>
+                    @Html.TextBoxFor(n => n.Descricao, new { @class="form-control" })
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="modal-error" id="modal-error"></div>
+                <div class="btn-group">
+                    <a href="#" id="btnUpdate" class="btn btn-danger">Editar Categoria</a>
+                    <a href="#" id="btnCancelUpdateConfirm" class="btn btn-primary">Cancelar Ação</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<table class="table table-bordered">
+    <tr class="btn-primary">
+        <th>
+            Id
+        </th>
+        <th>
+            Nome
+        </th>
+        <th>
+            Descrição
+        </th>
+        <th>
+            Data da Criação
+        </th>
+        <th>Ações</th>
+    </tr>
+
+    @foreach (var item in ViewBag.Categorias)
+    {
+        <tr>
+            <td class="text-center">
+                @item.Id
+            </td>
+            <td>
+                @item.Nome
+            </td>
+            <td class="col-md-5">
+                @item.Descricao
+            </td>
+            <td>
+                @item.DataCriacao
+            </td>
+            <td class="text-center">
+                <a href="#" id="showModal" class="btn btn-warning" onclick="ConfirmUpdate(@item.Id)">Editar</a> |
+                <a href="#" id="showModal" class="btn btn-danger" onclick="ConfirmDelete(@item.Id)">Remover</a>
+            </td>
+        </tr>
+    }
+</table>
+
+<input type="hidden" id='categoriaId' />
+
+<script>
+    $(document).ready(function () {
+        $("#btnSave").click(function () {
+            var categoriaFormData = $("#categoriaForm").serialize();
+
+            $.ajax({
+                type: "POST",
+                url: "/Categorias/CreateCategoria",
+                data: categoriaFormData,
+                success: function () {
+                    window.location.href = "/Categorias/Index";
+                },
+                error: function (request, status, error) {
+                    var response = '';
+                    if (request.responseText.includes("já existente")) {
+                        response = 'Categoria já existente.'
+                    };
+                    $('.modal-error').prepend('<td style="color:red">' + response + '</td>');
+                }
+            })
+        })
+
+        $("#btnCancel").click(function () {
+            window.location.href = "/Categorias/Index";
+        })
+
+        $("#btnCancelUpdateConfirm").click(function () {
+            window.location.href = "/Categorias/Index";
+        })
+
+        $("#btnUpdate").click(function () {
+            var id = document.getElementById('categoriaId').value;
+            var categoriaUpdateFormData = $("#categoriaUpdateForm").serialize();
+            var categoriaObject = categoriaUpdateFormData += '&Id=' + id + '';
+            console.log(categoriaObject)
+
+            $.ajax({
+                type: "PUT",
+                url: "/Categorias/UpdateCategoria",
+                data: categoriaObject,
+                success: function () {
+                    $("updateModal").modal('hide');
+                    document.getElementById('categoriaId').value = null;
+                    window.location.href = "/Categorias/Index";
+                },
+                error: function (request, status, error) {
+                    var response = '';
+                    if (request.responseText.includes("já existente")) {
+                        response = 'Categoria de nome já existente.'
+                    };
+                    $('.modal-error').prepend('<td style="color:red">' + response + '</td>');
+                }
+            })
+        })
+
+        $("#btnCancelDeleteConfirm").click(function () {
+            window.location.href = "/Categorias/Index";
+        })
+
+        $("#btnDelete").click(function () {
+            var id = document.getElementById('categoriaId').value;
+
+            $.ajax({
+                type: "DELETE",
+                url: "/Categorias/DeleteCategoria",
+                data: {categoriaId:id},
+                success: function () {
+                    $("deleteModal").modal('hide');
+                    document.getElementById('categoriaId').value = null;
+                    window.location.href = "/Categorias/Index";
+                }
+            })
+        })
+
+        $("#btnCancelDeleteConfirm").click(function () {
+            window.location.href = "/Categorias/Index";
+        })
+    })
+
+    var ConfirmDelete = function (id) {
+        document.getElementById('categoriaId').value = id;
+        $('#deleteModal').modal('show');
+    }
+    var ConfirmUpdate = function (id) {
+        document.getElementById('categoriaId').value = id;
+        $('#updateModal').modal('show');
+    }
+</script>

@@ -1,0 +1,230 @@
+﻿@model Citel_Teste_Entity.Models.Produto
+
+@{
+    ViewBag.Title = "Produtos";
+}
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+<h2>Produtos - Informações Gerais</h2>
+
+<p>
+    <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ProdutoModal">Novo Produto</a>
+</p>
+
+<div class="modal fade" id="ProdutoModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    Inserir Nova Produto
+                </h2>
+            </div>
+            <div class="modal-body">
+                <form id="ProdutoForm">
+                    <label>Nome</label>
+                    @Html.TextBoxFor(n => n.Nome, new { @class="form-control" })
+                    <label>Preço</label>
+                    @Html.TextBoxFor(n => n.Preco, new { @class="form-control", @type="number" })
+                    <label>Categoria Id</label>
+                    @Html.TextBoxFor(n => n.CategoriaId, new { @class="form-control", @type="number" })
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="modal-error" id="modal-error"></div>
+                <div class="btn-group">
+                    <a href="#" id="btnSave" class="btn btn-primary">Salvar Produto</a>
+                    <a href="#" id="btnCancel" class="btn btn-danger">Cancelar Ação</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    Remover Produto
+                </h2>
+            </div>
+            <div class="modal-body">
+                <h3>Você confirma remover este Produto?</h3>
+            </div>
+            <div class="modal-footer">
+                <div class="modal-error" id="modal-error"></div>
+                <div class="btn-group">
+                    <a href="#" id="btnDelete" class="btn btn-danger">Remover Produto</a>
+                    <a href="#" id="btnCancelDeleteConfirm" class="btn btn-primary">Cancelar Ação</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="updateModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    Editar Produto
+                </h2>
+            </div>
+            <div class="modal-body">
+                <form id="ProdutoUpdateForm">
+                    <label>Nome</label>
+                    @Html.TextBoxFor(n => n.Nome, new { @class="form-control" })
+                    <label>Preço</label>
+                    @Html.TextBoxFor(n => n.Preco, new { @class="form-control", @type="number" })
+                    <label>Categoria Id</label>
+                    @Html.TextBoxFor(n => n.CategoriaId, new { @class="form-control", @type="number" })
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="modal-error" id="modal-error"></div>
+                <div class="btn-group">
+                    <a href="#" id="btnUpdate" class="btn btn-danger">Editar Produto</a>
+                    <a href="#" id="btnCancelUpdateConfirm" class="btn btn-primary">Cancelar Ação</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<table class="table table-bordered">
+    <tr class="btn-primary">
+        <th>
+            Id
+        </th>
+        <th>
+            Nome
+        </th>
+        <th>
+            Preço
+        </th>
+        <th>
+            Categoria Id
+        </th>
+        <th>
+            Data da Criação
+        </th>
+        <th>Ações</th>
+    </tr>
+
+    @foreach (var item in ViewBag.Produtos)
+    {
+        <tr>
+            <td class="text-center">
+                @item.Id
+            </td>
+            <td>
+                @item.Nome
+            </td>
+            <td >
+                @item.Preco.ToString("C2")
+            </td>
+            <td>
+                @item.CategoriaId
+            </td>
+            <td>
+                @item.DataCriacao
+            </td>
+            <td class="text-center">
+                <a href="#" id="showModal" class="btn btn-warning" onclick="ConfirmUpdate(@item.Id)">Editar</a> |
+                <a href="#" id="showModal" class="btn btn-danger" onclick="ConfirmDelete(@item.Id)">Remover</a>
+            </td>
+        </tr>
+    }
+</table>
+
+<input type="hidden" id='ProdutoId' />
+
+<script>
+    $(document).ready(function () {
+        $("#btnSave").click(function () {
+            var ProdutoFormData = $("#ProdutoForm").serialize();
+
+            $.ajax({
+                type: "POST",
+                url: "/Produtos/CreateProduto",
+                data: ProdutoFormData,
+                success: function () {
+                    window.location.href = "/Produtos/Index";
+                },
+                error: function (request, status, error) {
+                    var response = '';
+                    if (request.responseText.includes("já existente")) {
+                        response = 'Produto já existente.'
+                    };
+                    $('.modal-error').prepend('<td style="color:red">' + response + '</td>');
+                }
+            })
+        })
+
+        $("#btnCancel").click(function () {
+            window.location.href = "/Produtos/Index";
+        })
+
+        $("#btnCancelUpdateConfirm").click(function () {
+            window.location.href = "/Produtos/Index";
+        })
+
+        $("#btnUpdate").click(function () {
+            var id = document.getElementById('ProdutoId').value;
+            var ProdutoUpdateFormData = $("#ProdutoUpdateForm").serialize();
+            var ProdutoObject = ProdutoUpdateFormData += '&Id=' + id + '';
+            console.log(ProdutoObject)
+
+            $.ajax({
+                type: "PUT",
+                url: "/Produtos/UpdateProduto",
+                data: ProdutoObject,
+                success: function () {
+                    $("updateModal").modal('hide');
+                    document.getElementById('ProdutoId').value = null;
+                    window.location.href = "/Produtos/Index";
+                },
+                error: function (request, status, error) {
+                    var response = '';
+                    if (request.responseText.includes("já existente")) {
+                        response = 'Produto de nome já existente.'
+                    };
+                    $('.modal-error').prepend('<td style="color:red">' + response + '</td>');
+                }
+            })
+        })
+
+        $("#btnCancelDeleteConfirm").click(function () {
+            window.location.href = "/Produtos/Index";
+        })
+
+        $("#btnDelete").click(function () {
+            var id = document.getElementById('ProdutoId').value;
+
+            $.ajax({
+                type: "DELETE",
+                url: "/Produtos/DeleteProduto",
+                data: { ProdutoId: id },
+                success: function () {
+                    $("deleteModal").modal('hide');
+                    document.getElementById('ProdutoId').value = null;
+                    window.location.href = "/Produtos/Index";
+                }
+            })
+        })
+
+        $("#btnCancelDeleteConfirm").click(function () {
+            window.location.href = "/Produtos/Index";
+        })
+    })
+
+    var ConfirmDelete = function (id) {
+        document.getElementById('ProdutoId').value = id;
+        $('#deleteModal').modal('show');
+    }
+    var ConfirmUpdate = function (id) {
+        document.getElementById('ProdutoId').value = id;
+        $('#updateModal').modal('show');
+    }
+</script>
